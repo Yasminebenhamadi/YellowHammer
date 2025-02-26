@@ -42,7 +42,7 @@ def precision_mid_recall_at_ditance(y_test, y_pred_scores, d_test):
             if median_value ==1:
                 median_value = 0.999999
 
-            y_pred = (y_pred_scores>median_value).astype(int).flatten()
+            y_pred = (y_pred_scores>=median_value).astype(int).flatten()
             precisions.append(precision_score(y_test, y_pred, average="binary"))
             medians.append(median_value)
     return precisions
@@ -202,7 +202,7 @@ def eval_results(data_folder, fold, model_path, transpose, model_name, eval_plot
 
 
 
-def compare_methodes():
+def compare_methods():
     data_folder_all = "/Users/yasminebenhamadi/YellowHammer/Processed/"
     models_folder_all = "/Users/yasminebenhamadi/YellowHammer/models/"
     eval_plot_folder = "/Users/yasminebenhamadi/YellowHammer/plots/"
@@ -257,4 +257,4 @@ def compare_methodes():
 
 
 if __name__ == "__main__":
-    compare_methodes()
+    compare_methods()
