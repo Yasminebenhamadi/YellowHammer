@@ -5,7 +5,26 @@ import tensorflow as tf
 
 from read_data import *
 
-def convert_model(outfolder, model_path, name, data_folder, fold, transpose, keep_data):
+def convert_model(outfolder, model_path, name):
+    # Code taken from students
+    model = tf.keras.models.load_model(model_path)
+
+    # Convert to TFLite with quantization
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model_1 = converter.convert()
+
+    # Save the converted model to a .tflite file
+    with open(outfolder+name+'_trained_model.tflite', 'wb') as f:
+        f.write(tflite_model_1)
+    
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    dynamic_model = converter.convert()
+
+    # Save the converted model to a .tflite file
+    with open(outfolder+name+'_dynamic_model.tflite', 'wb') as f:
+        f.write(dynamic_model)
+
+def convert_model_full_int(outfolder, model_path, name, data_folder, fold, transpose, keep_data):
     # Code taken from students
     model = tf.keras.models.load_model(model_path)
 
@@ -25,12 +44,6 @@ def convert_model(outfolder, model_path, name, data_folder, fold, transpose, kee
     # Convert to TFLite with quantization
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
 
-    tflite_model_1 = converter.convert()
-
-    # Save the converted model to a .tflite file
-    with open(outfolder+name+'_trained_model.tflite', 'wb') as f:
-        f.write(tflite_model_1)
-
     # Enable full integer quantization
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.representative_dataset = representative_dataset
@@ -43,7 +56,7 @@ def convert_model(outfolder, model_path, name, data_folder, fold, transpose, kee
     # Convert and save
     tflite_model = converter.convert()
 
-    with open(outfolder+name+"_quantized_model.tflite", "wb") as f:
+    with open(outfolder+name+"_int8_model.tflite", "wb") as f:
         f.write(tflite_model)
 
 def convert_models():
@@ -51,9 +64,10 @@ def convert_models():
     models_folder_all = "/Users/yasminebenhamadi/YellowHammer/models/"
     tf_folder = "/Users/yasminebenhamadi/YellowHammer/TFLite/"
 
-    process_names = ["average", "envelope", "bands", "mels"]
+    process_names = ["average", "envelope", "bands", "mels", "exit"]
+    data_names = ["average", "envelope", "bands", "mels", "mels"]
 
-    data_folders = [data_folder_all+process_name+"/" for process_name in process_names]
+    data_folders = [data_folder_all+data_name+"/" for data_name in data_names]
     models_folders = [models_folder_all+process_name+"_models/" for process_name in process_names]
 
     for fld_nb in range(1):
@@ -64,10 +78,13 @@ def convert_models():
         
 
         for i in range(len(process_names)):
-            convert_model(tflite_folder_fld, model_path=fld_models_folders[i], name=process_names[i], data_folder=data_folders[i], fold=fld_nb, transpose=(i==3), keep_data=(i==3))
+            convert_model(tflite_folder_fld, model_path=fld_models_folders[i], name=process_names[i])
+            convert_model_full_int(tflite_folder_fld, model_path=fld_models_folders[i], name=process_names[i], data_folder=data_folders[i], fold=fld_nb, transpose=(i>=3), keep_data=(i>=3))
 
 if __name__ == "__main__":
     convert_models()
+
+
 
 
 
