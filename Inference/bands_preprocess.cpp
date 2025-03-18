@@ -66,13 +66,16 @@ void lfilt_envelope(std::vector<float> a, std::vector<float> b, std::vector<floa
     BW_filter_t filter_buffer; 
     Butterworth_initialise(&filter_buffer);
 
+    audio.insert(audio.begin(), int(frame_length/2), 0);
+    audio.insert(audio.end(), int(frame_length/2), 0);
+
     int count=0; int count_frame=0;
     for(auto sample:audio){
         float y_filter = Butterworth_applyBandPassFilter(a,b, sample, &filter_buffer);
         filtered_audio.push_back(y_filter);
 
-        if (count % hop_length == 0){
-            envelope.push_back(y_filter*y_filter); 
+        if (count % hop_length == 0 && count+frame_length < audio.size()){
+            envelope.push_back(y_filter*y_filter);
         }
         
         for (int j=count_frame; j< div(count, hop_length).quot; j++){
@@ -80,13 +83,12 @@ void lfilt_envelope(std::vector<float> a, std::vector<float> b, std::vector<floa
         }
         
         if (count - count_frame * hop_length == frame_length){
+            envelope[count_frame] =  sqrt(envelope[count_frame]/frame_length);
             count_frame++;
         }
         count ++;
     }
-    for (int j=0; j < envelope.size(); j++){
-        envelope[j] =  sqrt(envelope[j]/frame_length);
-    }
+
     //Normalize
     float min = *std::min_element(envelope.begin(), envelope.end());
     float max = *std::max_element(envelope.begin(), envelope.end());
