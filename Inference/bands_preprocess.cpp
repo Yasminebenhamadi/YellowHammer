@@ -69,16 +69,17 @@ void lfilt_envelope(std::vector<float> a, std::vector<float> b, std::vector<floa
     audio.insert(audio.begin(), int(frame_length/2), 0);
     audio.insert(audio.end(), int(frame_length/2), 0);
 
-    int count=0; int count_frame=0;
+    int count=0, count_frame=0, env_count=0; 
     for(auto sample:audio){
         float y_filter = Butterworth_applyBandPassFilter(a,b, sample, &filter_buffer);
         filtered_audio.push_back(y_filter);
 
         if (count % hop_length == 0 && count+frame_length < audio.size()){
             envelope.push_back(y_filter*y_filter);
+            env_count++; 
         }
         
-        for (int j=count_frame; j< div(count, hop_length).quot; j++){
+        for (int j=count_frame; j< env_count; j++){
             envelope[j]+=y_filter*y_filter;
         }
         
